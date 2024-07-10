@@ -37,8 +37,8 @@ data.head()
 ## 2. Exploratory Data Analysis (EDA)
 ### 2.1 Data decomposition
 <p align="center">
-  <img src="https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/8c86188e-21a2-4db3-be41-e12f9bf6eae4" width="500" /> 
-  <img src="https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/dae09575-db8c-4658-93c5-ff8c97329732" width="480" />
+  <img src="https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/8c86188e-21a2-4db3-be41-e12f9bf6eae4" width="300" /> 
+  <img src="https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/dae09575-db8c-4658-93c5-ff8c97329732" width="280" />
   <br><em>Data before and after log transformation</em>
 </p>
 
@@ -51,7 +51,7 @@ data.head()
 
 **Conclusion:** Log transformation stabilizes variance, improves trend visibility, and reduces data fluctuations.
 
-### 2.3 Check for seasonality and trend in data
+### 2.2 Check for seasonality and trend in data
 ```python
 #Check for seasonality and trend in data:
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -72,7 +72,7 @@ The analysis of the df_closing data reveals 4 components:
 - The seasonal impact is negligible.
 - The random residuals show no particular pattern.
 
-### 2.4 Check the stationarity of the data series
+### 2.3 Check the stationarity of the data series
 ```python
 # Check the stationarity of the dataset function
 # ADF
@@ -114,9 +114,139 @@ print(kpss_test(df_closing))
 
 **=> The time series is not stationary.**
 
-## 3. Data Preprocessing
-###
+### 2.4 Autocorrelation test
+```python
+#correlation test
+def plot_correlation(data):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    lag_plot(data, ax=axes[0])
+    plot_pacf(data, ax=axes[1])
+    plot_acf(data, ax=axes[2])
+    plt.show()
+# Check Auto Correlation
+plot_correlation(df_closing)
+```
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/dd9597c3-a3bb-4f4e-80b4-2d43c971cd97)
 
+**Scatter Plot:** This plot shows a strong positive linear relationship between two variables, perhaps the closing prices of stocks at two different points in time. The x-axis is labeled as ( y(t) ) and the y-axis is ( y(t+1) ), both ranging from 5000 to 25000, indicating that today's closing price has a large impact on tomorrow's price.
+
+**Partial Autocorrelation Graph (PACF):** This plot has the x-axis representing lags from 0 to about 35 and the y-axis from -1.00 to +1.00. The blue points are distributed near the zero line, showing low partial correlations for different lags, indicating that there is no significant relationship between the stock closing values ​​and previous values ​​after removing the influence of more recent closing values.
+
+**Autocorrelation Graph (ACF):** This graph shows significant autocorrelation at different lags, indicating that the stock's closing price has a strong correlation with its past values, which may indicate non-randomness in the data and the potential for seasonal or trend patterns.
+
+### 2.5 Overall ACB's closing price
+Let's take a look at how ACB's closing price has changed over time:
+```python
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 6))
+plt.plot(data['time'], data['close'])
+plt.xlabel("Thời gian")
+plt.ylabel("Giá Đóng cửa") 
+plt.title("Giá Đóng cửa ACB Theo Thời gian")
+plt.show()
+```
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/01b5efdb-e79b-499c-b0b0-62161dcea1b3)
+
+The chart shows a strong growth trend of ACB's closing price from 2012 to the end of 2023.
+
+The main observable periods are:
+- 2012 - 2015: Volatile period with prices fluctuating between 3000 - 5000.
+-2016 - 2017: Stable period and slight growth.
+- Late 2017 - 2020: Dramatic growth period, especially from late 2017 to early 2018 and mid-2020.
+- 2021 - 2024: Strong volatility period with many peaks and troughs, but overall still maintaining an upward trend.
+
+### 2.6 Closing Price Distribution Analysis
+
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/b9f795dd-7ae1-4033-926a-afb568dafb6a)
+
+Analyzing the above chart will help us determine whether the data is normally distributed or skewed.
+
+The histogram shows that the closing price distribution of ACB shares is right-skewed, with most of the values ​​concentrated in the range of 4000 to 10000.
+Main features:
+- Most common value: Around 4000 - 5000 (this is the early stage of the data, when ACB shares are still low).
+- Values ​​that appear frequently:
+- Around 9000 - 10000
+- Around 25000 - 30000 (this is the late stage of the data, when ACB shares have grown significantly).
+- Few values: In the middle of the range of 15000 - 20000.
+
+**Comments:**
+The right-skewed distribution shows the growth of ACB shares over time.
+
+### 2.7 Summary of closing price statistics
+We can also obtain descriptive statistics to summarize the central tendency and dispersion of closing prices:
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/e09e506a-5dc1-4f10-aadb-e8f8a868ecf7)
+
+The box plot shows the distribution of ACB stock closing prices and provides information about outliers.
+**Observations:**
+- Most of the values ​​are concentrated: Within the box, from about 8000 to 17000.
+- Median: The horizontal line inside the box shows that the median is close to 10000.
+- Outliers: There are some outliers above the box, shown by individual dots. This shows that there are trading days when ACB's closing price increases dramatically compared to most other days.
+
+**Comments:**
+- The box plot confirms the presence of outliers in the closing price data, consistent with the analysis from the previous histogram.
+- The gap between the quartiles is quite large, indicating significant price fluctuations of ACB stock.
+
+### 2.8 Correlation Between Variables
+
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/adf11607-43d9-4824-bb26-19433fda3b34)
+
+The correlation matrix shows the linear relationship between variables in ACB stock data.
+
+**Observations:**
+
+- Very strong correlation (nearly 1): Between price variables (open, high, low, close). This shows that these values ​​tend to change together.
+- Medium correlation (about 0.67 - 0.68): Between trading volume and price variables. This relationship shows that when price changes, trading volume also tends to change.
+
+**Comments:**
+- The strong correlation between price variables is understandable, because they all reflect the value of ACB stock at different times during the trading day.
+- Medium correlation with trading volume shows that trading volume can be a factor affecting price, but not the only factor.
+
+### 2.9 ACB's Transaction Volume Over Time
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/1b96a598-9cd7-49af-90cb-ed6a8e4c6da5)
+
+The chart shows the fluctuations in ACB stock trading volume from 2012 to early 2024.
+
+**Observations:**
+- Period 2012 - 2017: Trading volume remained low and relatively stable.
+- From 2018 onwards: Trading volume fluctuated more strongly, with many peaks appearing.
+- The highest peak: Located in early 2021, showing the special interest of investors at that time.
+
+**Comments:**
+- Trading volume tends to increase over time, especially from 2018 onwards, possibly due to the development of the stock market and the increasing interest in ACB stocks.
+
+### 2.10 Relationship between closing price and trading volume
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/6dce3f96-b4d2-44e6-85ed-0f872238fbf1)
+
+The scatter plot shows the relationship between the closing price and trading volume of ACB stock.
+
+**Observations:**
+- General trend: There is a positive correlation between the two variables, meaning that when the closing price increases, the trading volume also tends to increase.
+- Dispersion: The relationship is not completely linear and has a fairly large dispersion. At the same price, the trading volume can fluctuate within a wide range.
+- Outliers: There are some data points that are separate from the general trend, showing trading days with unusual volume compared to the price.
+
+**Comments:**
+- The positive correlation between price and trading volume shows that investor interest increases as the stock price increases.
+However, the dispersion and the presence of outliers show that trading volume is not the only factor affecting price, and there may be other factors at play.
+
+## 3. Data Preprocessing
+### 3.1 Handling Missing Values
+```python
+print(data.isnull().sum())
+```
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/a5d95c21-45ad-4118-aae2-b942ae261fc3)
+
+The results show that the dataset does not contain missing values.
+
+### 3.2 Handing Time Index
+```python
+# Handing Time Index
+data['time'] = pd.to_datetime(data['time'])
+data = data.set_index('time')
+data = data[~data.index.duplicated(keep='first')]  # Delete duplicates
+new_data = data.copy()
+```
 ## 4. Model building process
+![image](https://github.com/thanhloc81/Predicting-the-Closing-Price-of-ACB/assets/151768013/400572f0-ed21-406a-9b28-00ef1dce3414)
 
 ## 5. Results 
+
